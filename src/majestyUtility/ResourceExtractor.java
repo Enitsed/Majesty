@@ -23,24 +23,27 @@ public class ResourceExtractor {
 	ArrayList<Integer> fileoffset;
 	ArrayList<String> name;
 
-	DataInputStream fileDataInputStream;
 	RandomAccessFile raf;
 	File file;
+	FileInputStream fileInputStream;
 
 	public ResourceExtractor(String fileLoc) {
 		file = new File(fileLoc);
 
 		try {
+			fileInputStream = new FileInputStream(file);
 
 			raf = new RandomAccessFile(file, "r");
 			numberOfFiles = raf.read();
 			Byte offset = raf.readByte();
-			String fileName = raf.readUTF();
+			String fileName = raf.readLine();
+
 			System.out.println(numberOfFiles);
 			System.out.println(offset);
 			System.out.println(fileName);
 
 			offset = raf.readByte();
+			fileName = raf.readLine();
 			System.out.println(offset);
 			System.out.println(fileName);
 			offset = raf.readByte();
