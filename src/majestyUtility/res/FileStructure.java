@@ -8,7 +8,7 @@ public class FileStructure {
 
 	private byte[] fileOffset = new byte[4]; // 각 파일의 주소값
 	private byte[] fileName = new byte[24]; // 파일 이름 저장할 바이트 배열
-	private byte[] fileData = new byte[this.fileSize]; // 각 파일의 데이터 저장할 바이트 배열
+	private byte[] fileData; // 각 파일의 데이터 저장할 바이트 배열
 
 	public int getOffset() {
 		return offset;
@@ -50,7 +50,8 @@ public class FileStructure {
 		this.fileName = fileName;
 	}
 
-	public byte[] getFileData() {
+	public byte[] getFileData(int fileSize) {
+		fileData = new byte[fileSize];
 		return fileData;
 	}
 
@@ -71,7 +72,6 @@ public class FileStructure {
 		}
 
 		return "no extension";
-
 	}
 
 }

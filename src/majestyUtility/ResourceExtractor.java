@@ -1,5 +1,8 @@
 package majestyUtility;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+
 /*
 [Number of Files]    [File Offset 1]    [File Name 1]   [File Offset 2]   [File Name 2]   ...N 번 만큼 반복 ... [ File Data ]
         4 byte                 4 byte         24 byte           4 byte           24 byte
@@ -9,11 +12,17 @@ package majestyUtility;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
+
+import javax.imageio.ImageIO;
 
 import majestyUtility.res.Converter;
 import majestyUtility.res.FileStructure;
@@ -42,15 +51,13 @@ public class ResourceExtractor {
 
 			int cnt = 0;
 			while (cnt < numberOfFiles) { // 파일 개수만큼 반복
-				if (cnt == numberOfFiles - 1) {
+				if (cnt == numberOfFiles - 1) { // 마지막 파일 크기구하기
 					fileStructure = new FileStructure();
 					raf.readFully(fileStructure.getFileOffset());
 					raf.readFully(fileStructure.getFileName());
 					fileStructure.setFileNames(new String(fileStructure.getFileName(), StandardCharsets.UTF_8).trim());
 					fileStructure.setOffset(Converter.byteArrayToInt(fileStructure.getFileOffset()));
 					fileStructure.setFileSize((int) raf.length() - fileStructure.getOffset());
-					raf.seek(fileStructure.getOffset());
-					raf.readFully(fileStructure.getFileData());
 
 					aList.add(fileStructure);
 				} else {
@@ -82,8 +89,6 @@ public class ResourceExtractor {
 			for (int i = 0; i < numberOfFiles; i++) {
 				try {
 					aList.get(i).setFileSize(aList.get(i + 1).getOffset() - aList.get(i).getOffset());
-					raf.seek(aList.get(i).getOffset());
-					raf.readFully(aList.get(i).getFileData());
 				} catch (IndexOutOfBoundsException e) {
 					System.out.println("reached out of index");
 				}
@@ -93,27 +98,24 @@ public class ResourceExtractor {
 
 			while (fileIterator.hasNext()) {
 				fileStructure = fileIterator.next();
+				raf.seek(fileStructure.getOffset());
+				raf.readFully(fileStructure.getFileData(fileStructure.getFileSize()));
 
+				if (fileStructure.getFileExtension(fileStructure.getFileNames()).equals("bmp")) {
+					ByteBuffer buf = null;
+					BufferedImage img = ImageIO
+							.read(new ByteArrayInputStream(fileStructure.getFileData(fileStructure.getFileSize())));
+					byte[] bytes = new byte[fileStructure.getFileSize()];
+					bytes = fileStructure.getFileData(fileStructure.getFileSize());
+					buf.get(bytes, 0, bytes.length);
+					Files.write(Paths.get(fileStructure.getFileNames()), buf.array());
+				} else {
+					Files.write(Paths.get(fileStructure.getFileNames()),
+							fileStructure.getFileData(fileStructure.getFileSize()));
+				}
 				// 각 파일 이름과 데이터만 입력하면 된다
 				System.out.println(fileStructure.getFileNames() + " file2 size:" + fileStructure.getFileSize());
 			}
-
-			// for (int i = numberOfFiles - 1; i >= 0; i--) {
-			// aList.get(i - 1).setFileSize(aList.get(i).getOffset() - aList.get(i -
-			// 1).getOffset());
-			// System.out.println(i + "size : "+aList.get(i).getFileSize());
-			// } // 각 파일 사이즈 구하기.
-
-			// 파일 위치로가서 파일 크기만큼 데이터를 읽는다.
-			// raf.seek(pOffset);
-			// fileSize = nOffset - pOffset; // 파일 크기 구하기
-			// pOffset = nOffset; // 이전 오프셋은 다음 오프셋으로 , 다음 오프셋을 이용해 크기구하기
-			//
-			// fileData = new byte[fileSize]; // 파일크기만큼 배열을 만들고
-			// raf.readFully(fileData); // 파일 크기 만큼 읽어온다.
-
-			// raf.readFully(fileOffset);
-			// nOffset = Converter.byteArrayToInt(fileOffset); // 다음 파일 오프셋
 
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
