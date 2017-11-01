@@ -12,10 +12,8 @@ import java.io.ByteArrayInputStream;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -98,20 +96,17 @@ public class ResourceExtractor {
 
 			while (fileIterator.hasNext()) {
 				fileStructure = fileIterator.next();
+				byte[] data = new byte[fileStructure.getFileSize()];
 				raf.seek(fileStructure.getOffset());
-				raf.readFully(fileStructure.getFileData(fileStructure.getFileSize()));
-
+				raf.readFully(data);
 				if (fileStructure.getFileExtension(fileStructure.getFileNames()).equals("bmp")) {
-					ByteBuffer buf = null;
-					BufferedImage img = ImageIO
-							.read(new ByteArrayInputStream(fileStructure.getFileData(fileStructure.getFileSize())));
-					byte[] bytes = new byte[fileStructure.getFileSize()];
-					bytes = fileStructure.getFileData(fileStructure.getFileSize());
-					buf.get(bytes, 0, bytes.length);
-					Files.write(Paths.get(fileStructure.getFileNames()), buf.array());
+					BufferedImage img;
+					img = ImageIO.read(new ByteArrayInputStream(data));
+					ImageIO.write(img, "BMP", new File("resources//" + fileStructure.getFileNames()));
+					System.out.println(img);
+
 				} else {
-					Files.write(Paths.get(fileStructure.getFileNames()),
-							fileStructure.getFileData(fileStructure.getFileSize()));
+					Files.write(Paths.get("resources//" + fileStructure.getFileNames()), data);
 				}
 				// 각 파일 이름과 데이터만 입력하면 된다
 				System.out.println(fileStructure.getFileNames() + " file2 size:" + fileStructure.getFileSize());
@@ -125,7 +120,7 @@ public class ResourceExtractor {
 	}
 
 	public static void main(String[] args) {
-		new ResourceExtractor("src\\majestyUtility\\res\\maps\\MapTile.dat");
+		new ResourceExtractor("src\\majestyUtility\\res\\maps\\items.dat");
 	}
 
 }

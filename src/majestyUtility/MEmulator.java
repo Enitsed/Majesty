@@ -11,6 +11,7 @@ public class MEmulator extends JFrame {
 	
 	
 	public MEmulator() {
+		File 
 		
 		setBackground(Color.BLACK);
 		setTitle("Majesty");
